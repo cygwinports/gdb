@@ -1,0 +1,17 @@
+DESCRIPTION="GNU Debugger"
+HOMEPAGE="http://www.gnu.org/software/gdb/"
+SRC_URI="mirror://gnu/gdb/${P}.tar.bz2"
+
+src_compile() {
+	cd ${B}
+	cygconf --disable-werror --disable-nls
+	cygmake -j1
+}
+
+src_install() {
+	cd ${B}
+	cyginstall
+
+	rm -fr ${D}/usr/{include,lib,share/locale}/
+	rm -f ${D}/usr/share/info/{bfd,configure,standards}.info
+}
