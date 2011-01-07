@@ -1,10 +1,11 @@
 DESCRIPTION="GNU Debugger"
 HOMEPAGE="http://www.gnu.org/software/gdb/"
 SRC_URI="mirror://gnu/gdb/${P}.tar.bz2"
+PATCH_URI="config-rpath.patch"
 
 src_compile() {
 	cd ${B}
-	cygconf --disable-werror --disable-nls
+	cygconf --disable-werror
 	cygmake -j1
 }
 
