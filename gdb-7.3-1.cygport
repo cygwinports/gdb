@@ -13,6 +13,7 @@ src_install() {
 	cd ${B}
 	cyginstall
 
-	rm -fr ${D}/usr/{include,lib,share/locale}/
+	# these are shipped by binutils
+	rm -fr ${D}/usr/{include,lib}/ ${D}/usr/share/locale/
 	rm -f ${D}/usr/share/info/{bfd,configure,standards}.info
 }
