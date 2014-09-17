@@ -1,9 +1,9 @@
 TOOLCHAIN_TARGET="native"
-inherit toolchain
+inherit python toolchain
 
 NAME="gdb"
 VERSION=7.8
-RELEASE=1
+RELEASE=2
 CATEGORY="Devel"
 SUMMARY="The GNU Debugger"
 DESCRIPTION="The GNU debugger, allows you to debug programs written in C, C++,
@@ -21,14 +21,15 @@ src_compile() {
 	cd ${B}
 	cygconf --disable-werror --enable-tui --disable-gdbtk \
 		--with-expat --with-lzma --with-python --with-zlib \
-		--without-libexpat-prefix \
-		--with-system-readline
+		--without-libexpat-prefix --with-system-readline
 	cygmake
 }
 
 src_install() {
 	cd ${B}
 	cyginstall
+
+	python_optimize /usr/share/gdb/python
 
 	# these are shipped by binutils
 	rm -fr ${D}/usr/{include,lib}/ ${D}/usr/share/locale/
