@@ -1,0 +1,79 @@
+--- origsrc/gdb-7.8/gdb/windows-nat.c	2014-07-29 14:37:43.000000000 +0200
++++ src/gdb-7.8/gdb/windows-nat.c	2014-08-04 12:04:47.175108511 +0200
+@@ -313,8 +313,11 @@ thread_rec (DWORD id, int get_context)
+ 		    /* We get Access Denied (5) when trying to suspend
+ 		       threads that Windows started on behalf of the
+ 		       debuggee, usually when those threads are just
+-		       about to exit.  */
+-		    if (err != ERROR_ACCESS_DENIED)
++		       about to exit.
++		       We can get Invalid Handle (6) if the main thread
++		       has exited. */
++		    if (err != ERROR_INVALID_HANDLE
++			&& err != ERROR_ACCESS_DENIED)
+ 		      warning (_("SuspendThread (tid=0x%x) failed."
+ 				 " (winerr %u)"),
+ 			       (unsigned) id, (unsigned) err);
+@@ -435,7 +438,6 @@ do_windows_fetch_inferior_registers (str
+ 
+   if (current_thread->reload_context)
+     {
+-#ifdef __COPY_CONTEXT_SIZE
+       if (have_saved_context)
+ 	{
+ 	  /* Lie about where the program actually is stopped since
+@@ -447,7 +449,6 @@ do_windows_fetch_inferior_registers (str
+ 	  have_saved_context = 0;
+ 	}
+       else
+-#endif
+ 	{
+ 	  thread_info *th = current_thread;
+ 	  th->context.ContextFlags = CONTEXT_DEBUGGER_DR;
+@@ -896,12 +897,15 @@ handle_output_debug_string (struct targe
+   else if (strncmp (s, _CYGWIN_SIGNAL_STRING,
+ 		    sizeof (_CYGWIN_SIGNAL_STRING) - 1) != 0)
+     {
+-#ifdef __CYGWIN__
+-      if (strncmp (s, "cYg", 3) != 0)
+-#endif
+-	warning (("%s"), s);
++      if (strncmp (s, "cYg", 3) != 0 || (strncmp (s + 3, "FFFFFFFF", 8) != 0
++	  && strncmp (s + 3, "std", 3) != 0))
++	{
++	  char *p = strchr (s, '\0');
++	  if (p > s && *--p == '\n')
++	    *p = '\0';
++	  warning (("%s"), s);
++	}
+     }
+-#ifdef __COPY_CONTEXT_SIZE
+   else
+     {
+       /* Got a cygwin signal marker.  A cygwin signal is followed by
+@@ -934,7 +938,6 @@ handle_output_debug_string (struct targe
+ 	  current_event.dwThreadId = retval;
+ 	}
+     }
+-#endif
+ 
+   if (s)
+     xfree (s);
+@@ -1315,7 +1318,7 @@ windows_resume (struct target_ops *ops,
+ 	    }
+ 	}
+ #endif
+-	DEBUG_EXCEPT(("Can only continue with recieved signal %d.\n",
++	DEBUG_EXCEPT(("Can only continue with received signal %d.\n",
+ 	  last_sig));
+     }
+ 
+@@ -2536,7 +2539,7 @@ windows_get_tib_address (struct target_o
+ {
+   thread_info *th;
+ 
+-  th = thread_rec (ptid_get_tid (ptid), 0);
++  th = thread_rec (ptid_get_tid (ptid), FALSE);
+   if (th == NULL)
+     return 0;
+ 

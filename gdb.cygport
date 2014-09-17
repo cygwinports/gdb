@@ -2,20 +2,28 @@ TOOLCHAIN_TARGET="native"
 inherit toolchain
 
 NAME="gdb"
-VERSION=7.3
+VERSION=7.8
 RELEASE=1
 CATEGORY="Devel"
-SUMMARY="GNU debugger"
-DESCRIPTION="GDB, the GNU Project debugger, allows you to see what is going
-on 'inside' another program while it executes -- or what another program was
-doing at the moment it crashed."
-HOMEPAGE="http://www.gnu.org/software/gdb/"
-SRC_URI="mirror://gnu/gdb/gdb-${VERSION}.tar.bz2"
+SUMMARY="The GNU Debugger"
+DESCRIPTION="The GNU debugger, allows you to debug programs written in C, C++,
+and other languages, by executing them in a controlled fashion
+and printing their data."
+HOMEPAGE="http://sourceware.org/gdb/"
+SRC_URI="ftp://sourceware.org/pub/gdb/releases/gdb-${VERSION}.tar.xz"
+SRC_DIR="gdb-${VERSION}"
+PATCH_URI="
+	7.8-symtab-cygwin.patch
+	7.8-windows-nat-cygwin.patch
+"
 
 src_compile() {
 	cd ${B}
-	cygconf --disable-werror
-	cygmake -j1
+	cygconf --disable-werror --enable-tui --disable-gdbtk \
+		--with-expat --with-lzma --with-python --with-zlib \
+		--without-libexpat-prefix \
+		--with-system-readline
+	cygmake
 }
 
 src_install() {
